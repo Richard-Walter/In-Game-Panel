@@ -89,7 +89,7 @@ class FSDPanel extends TemplateElement {
     return this.activeFlightInfo;
   }
 
-  //login in user and retrieve user_id
+  //Inisialise Map
   initialiseMap() {
     console.log("Initialising map...");
 
@@ -172,16 +172,16 @@ class FSDPanel extends TemplateElement {
         // //GET ACTIVE FLIGHT DATA USING SIMCONNECT EVERY 3S
         self.simConnectInterval = setInterval(() => {
           this.activeFlightInfo = self.getSimconnectData();
-        }, 3000);
+        }, 2000);
 
         console.log("INTIAL SIMCONNECT INTERVAL " + self.simConnectInterval);
 
-        // // UPDATE FLASK SERVER EVERY 4S
+        // // UPDATE SERVER EVERY 2S
         self.serverInterval = setInterval(() => {
           self.updateUserLocation(this.activeFlightInfo);
-        }, 4000);
+        }, 2000);
 
-        console.log("INTIAL SERVER INTERVAL " + self.serverInterval);
+        console.log("INTIAL SERVER INTERVAL ID" + self.serverInterval);
 
         //self.saveActiveFlightPlan(self.user_id);
       } else {
@@ -209,7 +209,7 @@ class FSDPanel extends TemplateElement {
     let content_iframe = document.getElementById("content_iframe");
 
     if (connection_area_element.hidden == false) {
-      console.log("user has requested to stop tracking");
+      console.log("Server down or user has requested to stop tracking");
       return;
     }
 
@@ -220,7 +220,7 @@ class FSDPanel extends TemplateElement {
 
     let http = new XMLHttpRequest();
     http.open("POST", this.FSD_URL + "/users/update_active_flight", true);
-    http.setRequestHeader('Content-Type', 'application/json');
+    http.setRequestHeader("Content-Type", "application/json");
     // http.setRequestHeader("Content-Type", "text/plain; charset=utf-8");
 
     http.onload = () => {
@@ -262,57 +262,55 @@ class FSDPanel extends TemplateElement {
       form_element.hidden = false;
     };
 
-    http.send(JSON.stringify(requestBody)); 
+    http.send(JSON.stringify(requestBody));
   }
 
   getSimconnectData() {
-    // console.log("querying simconnect");
+    let latitude = SimVar.GetSimVarValue("PLANE LATITUDE", "degrees").toFixed(6);
+    let longitude = SimVar.GetSimVarValue("PLANE LONGITUDE", "degrees").toFixed(6);
+    let altitude = SimVar.GetSimVarValue("PLANE ALTITUDE", "meters").toFixed(0);
+    let altitudeAGL = SimVar.GetSimVarValue("RADIO HEIGHT", "feet").toFixed(0);
+    let indicatedAirspeed = SimVar.GetSimVarValue("AIRSPEED INDICATED", "knots").toFixed(0);
+    let groundSpeed = SimVar.GetSimVarValue("GROUND VELOCITY", "knots").toFixed(0);
+    let headingTrue = SimVar.GetSimVarValue("PLANE HEADING DEGREES TRUE", "degrees").toFixed(0);
+    let aircraftType = SimVar.GetSimVarValue("ATC TYPE", "string");
+    let aircraftName = SimVar.GetSimVarValue("TITLE", "string");
+    let aircraftRego = SimVar.GetSimVarValue("ATC MODEL", "string");
+    let ACTID = SimVar.GetSimVarValue("ATC ID", "string");
+    let parkingBrakeIndicator = SimVar.GetSimVarValue("BRAKE PARKING INDICATOR", "bool");
+    let electricalMasterBattery = SimVar.GetSimVarValue("ELECTRICAL MASTER BATTERY", "bool");
+    let avionicsMasterSwitch = SimVar.GetSimVarValue("AVIONICS MASTER SWITCH", "bool");
+    let gpsGroundTrackTrue = SimVar.GetSimVarValue("GPS GROUND MAGNETIC TRACK", "degrees").toFixed(0);
+    let seaLevelPressure = SimVar.GetSimVarValue("SEA LEVEL PRESSURE", "millibars").toFixed(0);
+    let ambientTemperature = SimVar.GetSimVarValue("AMBIENT TEMPERATURE", "celsius").toFixed(0);
+    let windSpeed = SimVar.GetSimVarValue("AMBIENT WIND VELOCITY", "knots").toFixed(0);
+    let windDirection = SimVar.GetSimVarValue("AMBIENT WIND DIRECTION", "degrees").toFixed(0);
 
-    let user_id = this.user_id;
-    let lat = SimVar.GetSimVarValue("PLANE LATITUDE", "degrees").toFixed(6);
-    let lng = SimVar.GetSimVarValue("PLANE LONGITUDE", "degrees").toFixed(6);
-    let alt = SimVar.GetSimVarValue("PLANE ALTITUDE", "meters").toFixed(3);
-    let alt_agl = SimVar.GetSimVarValue("RADIO HEIGHT", "feet").toFixed(0);
-    let ias = SimVar.GetSimVarValue("AIRSPEED INDICATED", "knots").toFixed(0);
-    let ground_speed = SimVar.GetSimVarValue("GROUND VELOCITY", "knots").toFixed(0);
-    let heading_true = SimVar.GetSimVarValue("PLANE HEADING DEGREES TRUE", "degrees").toFixed(0);
-    let aircraft_type = SimVar.GetSimVarValue("ATC TYPE", "string");
-    let aircraft_model = SimVar.GetSimVarValue("ATC MODEL", "string");
-    let atc_id = SimVar.GetSimVarValue("ATC ID", "string");
-    let title = SimVar.GetSimVarValue("TITLE", "string");
-    let atc_airline = SimVar.GetSimVarValue("ATC AIRLINE", "string");
-    let flight_number = SimVar.GetSimVarValue("ATC FLIGHT NUMBER", "string");
-    let parking_brake_indicator = SimVar.GetSimVarValue("BRAKE PARKING INDICATOR", "bool");
-    let electrical_master_battery = SimVar.GetSimVarValue("ELECTRICAL MASTER BATTERY", "bool");
-    let avionics_master_switch = SimVar.GetSimVarValue("AVIONICS MASTER SWITCH", "bool");
-    let gps_ground_true_track = SimVar.GetSimVarValue("GPS GROUND MAGNETIC TRACK", "degrees").toFixed(0);
-    let sea_level_pressure = SimVar.GetSimVarValue("SEA LEVEL PRESSURE", "millibars").toFixed(0);
-    let ambient_temperature = SimVar.GetSimVarValue("AMBIENT TEMPERATURE", "celsius").toFixed(0);
-    let wind_speed = SimVar.GetSimVarValue("AMBIENT WIND VELOCITY", "knots").toFixed(0);
-    let wind_direction = SimVar.GetSimVarValue("AMBIENT WIND DIRECTION", "degrees").toFixed(0);
+    let timeElapsed = Date.now();
+    let todayDatetime = new Date(timeElapsed);
+    let lastModified = todayDatetime.toISOString();
 
     const activeFlightData = {
-      user_id,
-      title,
-      atc_id,
-      lat,
-      lng,
-      alt,
-      alt_agl,
-      ground_speed,
-      ias,
-      heading_true,
-      atc_id,
-      aircraft_type,
-      aircraft_model,
-      parking_brake_indicator,
-      electrical_master_battery,
-      avionics_master_switch,
-      gps_ground_true_track,
-      sea_level_pressure,
-      ambient_temperature,
-      wind_speed,
-      wind_direction,
+      lastModified,
+      latitude,
+      longitude,
+      altitude,
+      altitudeAGL,
+      indicatedAirspeed,
+      groundSpeed,
+      headingTrue,
+      aircraftType,
+      aircraftName,
+      aircraftRego,
+      ACTID,
+      parkingBrakeIndicator,
+      electricalMasterBattery,
+      avionicsMasterSwitch,
+      gpsGroundTrackTrue,
+      seaLevelPressure,
+      ambientTemperature,
+      windSpeed,
+      windDirection,
     };
 
     return activeFlightData;
