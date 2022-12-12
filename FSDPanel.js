@@ -183,7 +183,7 @@ class FSDPanel extends TemplateElement {
 
         console.log("INTIAL SERVER INTERVAL ID" + self.serverInterval);
 
-        //self.saveActiveFlightPlan(self.user_id);
+        self.saveActiveFlightPlan(self.user_id);
       } else {
         console.log(`User cannot be authorised`);
         console.log(http.responseText);
@@ -346,13 +346,10 @@ class FSDPanel extends TemplateElement {
         // console.log(flightPlanData.waypoints[0]);
 
         let waypoint_data_list = [];
-        this.fp_data["user_id"] = user_id;
 
         for (let i = 0; i < flightPlanData.waypoints.length; i++) {
           var waypoint_info = {};
           var wp = flightPlanData.waypoints[i];
-          //waypoint_info['user_id'] = self.user_id;
-          // waypoint_info['user_id'] = 'rjw102';
           waypoint_info["ident"] = wp.ident;
           waypoint_info["icao"] = wp.icao;
           waypoint_info["lat"] = wp.lla.lat;
@@ -365,7 +362,7 @@ class FSDPanel extends TemplateElement {
           waypoint_data_list.push(waypoint_info);
         }
 
-        this.fp_data["waypoint_data_list"] = waypoint_data_list;
+        this.fp_data["waypointDataList"] = waypoint_data_list;
 
         let http = new XMLHttpRequest();
 
@@ -374,7 +371,7 @@ class FSDPanel extends TemplateElement {
 
         http.onload = function () {
           if (http.status === 200) {
-            console.log(`FLIGHT PLAN SAVED`);
+            console.log(`FLIGHT PLAN SAVED `);
             //console.log(http.responseText);
           } else {
             console.log(`Cant save flight plan`);
@@ -386,7 +383,7 @@ class FSDPanel extends TemplateElement {
           console.log("Network error saving flight plan");
         };
 
-        console.log("sending flight plan to flask");
+        console.log("sending flight plan to server");
         http.send(JSON.stringify(this.fp_data));
       });
     });
